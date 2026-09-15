@@ -8,7 +8,7 @@ from deep_translator import MyMemoryTranslator
 from flask import Flask, jsonify, render_template, request, send_file
 from gtts import gTTS
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="public", static_url_path="")
 app.config["MAX_CONTENT_LENGTH"] = 20 * 1024
 languages = dict(sorted(GOOGLE_LANGUAGES_TO_CODES.items()))
 language_codes = set(languages.values())

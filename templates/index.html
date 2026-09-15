@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Voxa | Real-time translator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">V</span><span>VOXA</span></div>
+      <span class="status"><span class="status-dot"></span>Translation desk</span>
+    </header>
+
+    <div class="main-split">
+      <section class="hero">
+        <p class="eyebrow">VOICE · TEXT · CONNECTION</p>
+        <h1>Say it in<br><em>any language.</em></h1>
+        <p class="lede">A focused translation workspace for conversations that do not wait.</p>
+      </section>
+
+      <section class="workspace" aria-label="Translation workspace">
+      <div class="language-row">
+        <label>From
+          <select id="source-language">
+            <option value="auto">Detect language</option>
+            {% for name, code in languages.items() %}<option value="{{ code }}"{% if code == 'en' %} selected{% endif %}>{{ name|title }}</option>{% endfor %}
+          </select>
+        </label>
+        <button class="swap" id="swap-languages" type="button" title="Swap languages" aria-label="Swap languages">↔</button>
+        <label>To
+          <select id="target-language">
+            {% for name, code in languages.items() %}<option value="{{ code }}"{% if code == 'es' %} selected{% endif %}>{{ name|title }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <div class="translation-grid">
+        <article class="panel input-panel">
+          <div class="panel-heading"><span>Your words</span><span id="input-count">0 / 5,000</span></div>
+          <textarea id="source-text" maxlength="5000" placeholder="Type something to translate..."></textarea>
+          <div class="panel-actions"><div class="audio-actions"><button class="mic-button" id="voice-input" type="button">● <span>Speak</span></button><button class="stop-button" id="stop-input" type="button" disabled>■ <span>Stop</span></button></div><button class="clear-button" id="clear-text" type="button">Clear</button></div>
+        </article>
+        <article class="panel output-panel">
+          <div class="panel-heading"><span>Translation</span><span id="detected-language"></span></div>
+          <div class="translated-text" id="translated-text">Your translation will appear here.</div>
+          <div class="panel-actions"><div class="audio-actions"><button class="speak-button" id="speak-output" type="button" disabled>▶ <span>Play translation</span></button><button class="stop-button" id="stop-output" type="button" disabled>■ <span>Stop</span></button></div><button class="copy-button" id="copy-output" type="button" disabled>Copy</button></div>
+        </article>
+      </div>
+      <button class="translate-button" id="translate" type="button">Translate <span>→</span></button>
+      <p class="message" id="message" role="status"></p>
+      </section>
+    </div>
+
+    <section class="architecture" aria-labelledby="architecture-title">
+      <div class="architecture-intro">
+        <p class="eyebrow">UNDER THE HOOD</p>
+        <h2 id="architecture-title">How the process works</h2>
+        <p>One small request moves through four focused layers.</p>
+      </div>
+      <div class="process-flow">
+        <article class="process-step"><span>01</span><h3>Capture</h3><p>Type a phrase or speak through the browser microphone.</p></article>
+        <article class="process-step"><span>02</span><h3>Request</h3><p>The interface sends your text and language choices to Flask.</p></article>
+        <article class="process-step"><span>03</span><h3>Translate</h3><p>Flask requests a translation and returns the translated text.</p></article>
+        <article class="process-step"><span>04</span><h3>Respond</h3><p>Read, copy, or listen as Flask generates an MP3 with gTTS.</p></article>
+      </div>
+    </section>
+
+    <footer>Powered by online translation and Google Text-to-Speech <span>·</span> Requires an internet connection</footer>
+  </main>
+  <script>
+    const sourceText = document.querySelector('#source-text');
+    const translatedText = document.querySelector('#translated-text');
+    const sourceLanguage = document.querySelector('#source-language');
+    const targetLanguage = document.querySelector('#target-language');
+    const message = document.querySelector('#message');
+    const voiceInput = document.querySelector('#voice-input');
+    const stopInput = document.querySelector('#stop-input');
+    const speakOutput = document.querySelector('#speak-output');
+    const stopOutput = document.querySelector('#stop-output');
+    const copyOutput = document.querySelector('#copy-output');
+    let latestTranslation = '';
+    let activeAudio = null;
+    let activeRecognition = null;
+
+    sourceText.addEventListener('input', () => {
+      document.querySelector('#input-count').textContent = `${sourceText.value.length.toLocaleString()} / 5,000`;
+    });
+
+    document.querySelector('#translate').addEventListener('click', async () => {
+      const text = sourceText.value.trim();
+      if (!text) { message.textContent = 'Enter text or use the microphone first.'; return; }
+      message.textContent = 'Translating...';
+      try {
+        const response = await fetch('/api/translate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text, source: sourceLanguage.value, target: targetLanguage.value}) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error);
+        latestTranslation = data.text;
+        translatedText.textContent = data.text;
+        document.querySelector('#detected-language').textContent = data.detected_language ? `Detected: ${data.detected_language.toUpperCase()}` : '';
+        stopAudio();
+        speakOutput.disabled = false; copyOutput.disabled = false; message.textContent = '';
+      } catch (error) { message.textContent = error.message; }
+    });
+
+    document.querySelector('#clear-text').addEventListener('click', () => { sourceText.value = ''; sourceText.dispatchEvent(new Event('input')); });
+    document.querySelector('#copy-output').addEventListener('click', async () => { await navigator.clipboard.writeText(latestTranslation); message.textContent = 'Translation copied.'; });
+    document.querySelector('#speak-output').addEventListener('click', async () => {
+      speakOutput.disabled = true;
+      try {
+        const response = await fetch('/api/speak', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({text: latestTranslation, language: targetLanguage.value}) });
+        if (!response.ok) throw new Error((await response.json()).error);
+        activeAudio = new Audio(URL.createObjectURL(await response.blob()));
+        activeAudio.onended = stopAudio;
+        await activeAudio.play();
+        stopOutput.disabled = false;
+        message.textContent = 'Playing translation.';
+      } catch (error) {
+        message.textContent = error.message;
+        stopAudio();
+      }
+    });
+    stopOutput.addEventListener('click', stopAudio);
+
+    function stopAudio() {
+      if (activeAudio) {
+        activeAudio.pause();
+        activeAudio.currentTime = 0;
+        URL.revokeObjectURL(activeAudio.src);
+        activeAudio = null;
+      }
+      speakOutput.disabled = !latestTranslation;
+      stopOutput.disabled = true;
+    }
+    document.querySelector('#swap-languages').addEventListener('click', () => {
+      if (sourceLanguage.value === 'auto') return;
+      [sourceLanguage.value, targetLanguage.value] = [targetLanguage.value, sourceLanguage.value];
+      [sourceText.value, translatedText.textContent] = [latestTranslation, sourceText.value];
+      sourceText.dispatchEvent(new Event('input'));
+    });
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    voiceInput.addEventListener('click', () => {
+      if (!SpeechRecognition) { message.textContent = 'Voice input is supported in Chrome and Edge.'; return; }
+      const recognition = new SpeechRecognition();
+      activeRecognition = recognition;
+      recognition.lang = sourceLanguage.value === 'auto' ? 'en-US' : sourceLanguage.value;
+      recognition.interimResults = false;
+      message.textContent = 'Listening...';
+      voiceInput.disabled = true;
+      stopInput.disabled = false;
+      recognition.start();
+      recognition.onresult = event => {
+        sourceText.value = event.results[0][0].transcript;
+        sourceText.dispatchEvent(new Event('input'));
+        message.textContent = 'Voice captured. Press Translate.';
+      };
+      recognition.onerror = () => { message.textContent = 'Could not access voice input.'; };
+      recognition.onend = () => {
+        activeRecognition = null;
+        voiceInput.disabled = false;
+        stopInput.disabled = true;
+      };
+    });
+    stopInput.addEventListener('click', () => {
+      if (activeRecognition) activeRecognition.abort();
+      message.textContent = 'Voice input stopped.';
+    });
+  </script>
+</body>
+</html>

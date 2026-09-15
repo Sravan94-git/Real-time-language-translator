@@ -51,6 +51,8 @@ def request_too_large(_error):
 
 
 @app.get("/")
+@app.get("/api")
+@app.get("/api/")
 def index():
     return render_template("index.html", languages=languages)
 

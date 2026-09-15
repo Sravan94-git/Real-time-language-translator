@@ -1,50 +1,52 @@
-# 🌍 Real-Time Language Translator using Speech Recognition & Google Translate
+# 🌍 Voxa Real-Time Language Translator
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Framework](https://img.shields.io/badge/Framework-Streamlit-red.svg)](https://streamlit.io/)
-[![Translation](https://img.shields.io/badge/API-Google%20Translate-green.svg)](https://translate.google.com/)
-[![Speech Recognition](https://img.shields.io/badge/SpeechRecognition-Google-blue.svg)](https://pypi.org/project/SpeechRecognition/)
+[![Framework](https://img.shields.io/badge/Framework-Flask-black.svg)](https://flask.palletsprojects.com/)
+[![Translation](https://img.shields.io/badge/API-MyMemory-green.svg)](https://mymemory.translated.net/)
+[![Speech Recognition](https://img.shields.io/badge/SpeechRecognition-Browser-blue.svg)](https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
 
-This project presents an **AI-powered Real-Time Language Translator** that enables users to translate spoken language into another language instantly. Built using **Python**, **Streamlit**, **SpeechRecognition**, **Google Translate**, and **Google Text-to-Speech (gTTS)**, the application captures voice input through a microphone, converts it into text, translates it into the selected language, and generates natural-sounding speech for the translated output. The application offers an intuitive web interface for seamless multilingual communication.
+**Voxa** is a Flask-based real-time language translation workspace. It accepts typed text or browser microphone input, translates it into the selected language, and generates spoken audio for the translation using Google Text-to-Speech. The responsive interface also supports copying, playing, and stopping translated audio.
 
 ***
 
 ## ✨ Key Features
 
-- 🎤 **Real-Time Speech Recognition:** Captures live voice input using a microphone.
+- 🎤 **Browser Voice Input:** Captures live voice input using the browser Speech Recognition API.
 - 🌍 **Multi-Language Translation:** Supports translation between 100+ languages.
 - 🔊 **Text-to-Speech Conversion:** Converts translated text into natural speech.
-- 💻 **Interactive Streamlit Interface:** Easy-to-use web application.
+- 💻 **Responsive Flask Interface:** Clean web application for desktop and mobile screens.
 - 📝 **Live Text Display:** Displays recognized and translated text instantly.
-- ⚡ **Fast Translation:** Provides near real-time speech translation.
+- ▶️ **Audio Controls:** Play and stop translated speech from either workspace.
 - 🌐 **Language Selection:** Choose both source and destination languages.
-- 🚀 **Lightweight Deployment:** Easy to run locally or deploy on cloud platforms.
+- 🛡️ **Security Protections:** Includes request limits, rate limiting, security headers, and generic public errors.
+- 🚀 **Cloud Deployment:** Configured for Vercel serverless deployment and traditional Gunicorn hosting.
 
 ***
 
 ## 🛠️ Tech Stack
 
 - **Programming Language:** Python 3
-- **Frontend Framework:** Streamlit
-- **Speech Recognition:** SpeechRecognition (Google Speech API)
-- **Translation API:** Google Translate (googletrans)
+- **Backend Framework:** Flask
+- **Frontend:** HTML, CSS, and browser JavaScript
+- **Speech Recognition:** Browser Speech Recognition API
+- **Translation API:** MyMemory through deep-translator
 - **Text-to-Speech:** Google Text-to-Speech (gTTS)
-- **Audio Processing:** PyAudio
-- **Development Environment:** VS Code, Jupyter Notebook
+- **Production Server:** Gunicorn
+- **Deployment:** Vercel or any Gunicorn-compatible host
 
 ***
 
 ## 🚀 Project Workflow
 
 1. User selects the source and target languages.
-2. User clicks the **Start Translation** button.
-3. The application listens to the user's speech.
-4. SpeechRecognition converts the spoken audio into text.
-5. Google Translate translates the recognized text.
-6. The translated text is displayed on the screen.
-7. Google Text-to-Speech converts the translated text into speech.
-8. The translated audio is played directly within the application.
+2. User types text or uses the browser microphone.
+3. The browser converts speech into text when voice input is used.
+4. Flask validates the request and calls the translation service.
+5. The translated text is displayed on the screen.
+6. User can copy the result or request spoken audio.
+7. Google Text-to-Speech generates an MP3 response.
+8. User can play or stop the translated audio.
 
 ***
 
@@ -53,12 +55,17 @@ This project presents an **AI-powered Real-Time Language Translator** that enabl
 ```text
 Real-Time-Language-Translator/
 │
-├── app.py
+├── main.py
 ├── requirements.txt
 ├── README.md
-│
-├── assets/
-│   └── screenshots/
+├── Procfile
+├── vercel.json
+├── api/
+│   └── index.py
+├── static/
+│   └── style.css
+├── templates/
+│   └── index.html
 │
 └── .gitignore
 ```
@@ -86,7 +93,7 @@ Real-Time-Language-Translator/
 - 🤖 AI-powered speech enhancement.
 - 🎙️ Speaker identification.
 - 📄 Translation history and export.
-- ☁️ Cloud deployment with authentication.
+- ☁️ Cloud deployment with authentication and shared rate limiting.
 - 📊 Translation analytics dashboard.
 
 ***
@@ -96,9 +103,9 @@ Real-Time-Language-Translator/
 ### Clone the Repository
 
 ```bash
-git clone https://github.com/yourusername/Real-Time-Language-Translator.git
+git clone https://github.com/Sravan94-git/Real-time-language-translator.git
 
-cd Real-Time-Language-Translator
+cd Real-time-language-translator
 ```
 
 ### Install Dependencies
@@ -107,39 +114,16 @@ cd Real-Time-Language-Translator
 pip install -r requirements.txt
 ```
 
-### Install PyAudio (If Required)
-
-#### Windows
-
-```bash
-pip install pipwin
-pipwin install pyaudio
-```
-
-#### Linux
-
-```bash
-sudo apt-get install portaudio19-dev
-pip install pyaudio
-```
-
-#### macOS
-
-```bash
-brew install portaudio
-pip install pyaudio
-```
-
 ### Run the Application
 
 ```bash
-streamlit run app.py
+python main.py
 ```
 
 Open your browser and visit:
 
 ```
-http://localhost:8501
+http://127.0.0.1:5000
 ```
 
 ***
@@ -147,21 +131,22 @@ http://localhost:8501
 ## 📸 Output
 
 - Select source and target languages.
-- Click **Start Translation**.
-- Speak into the microphone.
+- Type text or click **Speak** and allow microphone access.
+- Click **Translate**.
 - The application displays:
   - 🎤 Recognized Speech
   - 🌍 Translated Text
-  - 🔊 Audio Playback of the Translation
+  - 🔊 Play and stop controls for the translation audio
 
 ***
 
 ## 📈 Results
 
-- Accurate speech recognition using Google's Speech API.
-- Fast multilingual translation across 100+ languages.
+- Browser-based speech recognition where supported by Chrome and Edge.
+- Multilingual translation across 100+ languages.
 - Natural voice output using Google Text-to-Speech.
-- Responsive and user-friendly Streamlit interface.
+- Responsive and user-friendly Flask interface.
+- Server-side validation and abuse protections for public endpoints.
 - Efficient solution for real-time multilingual communication.
 
 ***
@@ -169,11 +154,10 @@ http://localhost:8501
 ## 📦 Requirements
 
 ```text
-streamlit
-SpeechRecognition
-googletrans==4.0.0rc1
-gTTS
-PyAudio
+Flask==3.1.3
+deep-translator==1.11.4
+gTTS==2.5.4
+gunicorn==23.0.0
 ```
 
 Install all dependencies using:
@@ -181,6 +165,16 @@ Install all dependencies using:
 ```bash
 pip install -r requirements.txt
 ```
+
+### Production Server
+
+```bash
+gunicorn main:app
+```
+
+### Vercel Deployment
+
+The repository includes `api/index.py` and `vercel.json` for Vercel's Python serverless runtime. Import the GitHub repository into Vercel and deploy without a separate start command.
 
 ***
 

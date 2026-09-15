@@ -83,18 +83,6 @@ Real-Time-Language-Translator/
 - 🤖 AI Voice Assistants
 - 🗣️ Cross-Language Conversations
 
-***
-
-## 🎯 Future Enhancements
-
-- 📹 Real-time video translation.
-- 📱 Mobile application support.
-- 🌐 Offline translation mode.
-- 🤖 AI-powered speech enhancement.
-- 🎙️ Speaker identification.
-- 📄 Translation history and export.
-- ☁️ Cloud deployment with authentication and shared rate limiting.
-- 📊 Translation analytics dashboard.
 
 ***
 
@@ -178,13 +166,6 @@ The repository includes `api/index.py` and `vercel.json` for Vercel's Python ser
 
 ***
 
-## 🤝 Contributing
-
-Contributions are welcome!
-
-Feel free to fork the repository, create a feature branch, and submit a pull request.
-
-***
 
 ## 📜 License
 
@@ -195,7 +176,5 @@ This project is licensed under the **MIT License**.
 ## 👨‍💻 Author
 
 **Sravan**
-
-AI | Machine Learning | Deep Learning | Python Developer | Full Stack Developer
 
 If you found this project useful, don't forget to ⭐ the repository!
